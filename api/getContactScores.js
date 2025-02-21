@@ -6,7 +6,6 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // Handle OPTIONS request for CORS preflight
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
@@ -45,45 +44,43 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    console.log("DEBUG: contact.customField =", contact.customField);
-    
-    // Custom field extraction with exact GHL field names
+    // Debug: Log the entire custom fields array
+    console.log("All custom fields:", contact.customField);
+
     const cfArray = contact.customField || [];
+    
+    // Debug: Log each field search
     function getFieldValue(fieldName) {
-      const fieldObj = cfArray.find(cf => cf.name === fieldName);
-      console.log(`Looking for field: ${fieldName}, Found:`, fieldObj); // Debug log
+      console.log(`Searching for field: ${fieldName}`);
+      
+      // Log all field names to see what's available
+      console.log("Available fields:", cfArray.map(cf => cf.name));
+      
+      const fieldObj = cfArray.find(cf => cf.name.toLowerCase() === fieldName.toLowerCase());
+      console.log(`Field object found for ${fieldName}:`, fieldObj);
+      
       if (!fieldObj) return 0;
-      return parseInt(fieldObj.fieldValue, 10) || 0;
+      const value = parseInt(fieldObj.fieldValue, 10) || 0;
+      console.log(`Value for ${fieldName}:`, value);
+      return value;
     }
 
-    // Get all required field values using exact GHL field names
-    const selfConfidenceRaw = getFieldValue("selfconfidence");
-    const financesRaw = getFieldValue("finances");
-    const careerBusinessRaw = getFieldValue("career__business");
-    const relationshipsRaw = getFieldValue("relationships");
-    const selfCareRaw = getFieldValue("self_care");
-    const legacyLivingRaw = getFieldValue("legacy_living");
+    // Try different variations of field names
+    const data = {
+      selfConfidence: getFieldValue("self confidence") || getFieldValue("selfconfidence") || getFieldValue("self_confidence"),
+      finances: getFieldValue("finances") || getFieldValue("finance"),
+      careerBusiness: getFieldValue("career / business") || getFieldValue("career__business") || getFieldValue("career_business"),
+      relationships: getFieldValue("relationships") || getFieldValue("relationship"),
+      selfCare: getFieldValue("self care") || getFieldValue("self_care"),
+      legacyLiving: getFieldValue("legacy living") || getFieldValue("legacy_living")
+    };
 
-    // Added debug logging
-    console.log("Raw field values:", {
-      selfConfidence: selfConfidenceRaw,
-      finances: financesRaw,
-      careerBusiness: careerBusinessRaw,
-      relationships: relationshipsRaw,
-      selfCare: selfCareRaw,
-      legacyLiving: legacyLivingRaw
-    });
+    // Debug: Log final values
+    console.log("Final data being sent:", data);
 
     res.json({
       success: true,
-      data: {
-        selfConfidence: selfConfidenceRaw,
-        finances: financesRaw,
-        careerBusiness: careerBusinessRaw,
-        relationships: relationshipsRaw,
-        selfCare: selfCareRaw,
-        legacyLiving: legacyLivingRaw
-      }
+      data: data
     });
 
   } catch (err) {
