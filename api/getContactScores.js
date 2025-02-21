@@ -1,6 +1,17 @@
 const axios = require("axios");
 
 module.exports = async function handler(req, res) {
+  // Add CORS headers
+  res.setHeader('Access-Control-Allow-Origin', 'https://wheel.makingofyour.life');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle OPTIONS request for CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   try {
     const { cid } = req.query; 
     if (!cid) {
@@ -19,7 +30,7 @@ module.exports = async function handler(req, res) {
     }
 
     const ghlUrl = `https://rest.gohighlevel.com/v1/contacts/${cid}?include=customField`;
-    let ghlResponse = await axios.get(ghlUrl, {
+    const ghlResponse = await axios.get(ghlUrl, {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json"
@@ -33,31 +44,37 @@ module.exports = async function handler(req, res) {
         message: `No contact found with id ${cid}`
       });
     }
-	
-	const contact = ghlResponse.data.contact;
-console.log("DEBUG: contact.customField =", contact.customField);
 
-    // Example custom field extraction:
-    let cfArray = contact.customField || [];
+    console.log("DEBUG: contact.customField =", contact.customField);
+    
+    // Custom field extraction
+    const cfArray = contact.customField || [];
     function getFieldValue(fieldName) {
-      let fieldObj = cfArray.find(cf => cf.name === fieldName);
+      const fieldObj = cfArray.find(cf => cf.name === fieldName);
       if (!fieldObj) return 0;
       return parseInt(fieldObj.fieldValue, 10) || 0;
     }
 
-    let relationshipsRaw  = getFieldValue("relationships");
-    let selfConfidenceRaw = getFieldValue("selfconfidence");
-    let financesRaw       = getFieldValue("finances");
-    // etc. if you have more fields
+    // Get all required field values
+    const relationshipsRaw = getFieldValue("relationships");
+    const selfConfidenceRaw = getFieldValue("selfconfidence");
+    const financesRaw = getFieldValue("finances");
+    const selfCareRaw = getFieldValue("selfcare");
+    const legacyLivingRaw = getFieldValue("legacyliving");
+    const careerBusinessRaw = getFieldValue("careerbusiness");
 
     res.json({
       success: true,
       data: {
-        relationships:  relationshipsRaw,
+        relationships: relationshipsRaw,
         selfConfidence: selfConfidenceRaw,
-        finances:       financesRaw
+        finances: financesRaw,
+        selfCare: selfCareRaw,
+        legacyLiving: legacyLivingRaw,
+        careerBusiness: careerBusinessRaw
       }
     });
+
   } catch (err) {
     console.error(err);
     return res.status(500).json({
