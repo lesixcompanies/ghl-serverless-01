@@ -44,35 +44,30 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // Debug: Log the entire custom fields array
-    console.log("All custom fields:", contact.customField);
-
     const cfArray = contact.customField || [];
     
-    // Debug: Log each field search
-    function getFieldValue(fieldName) {
-      console.log(`Searching for field: ${fieldName}`);
-      
-      // Log all field names to see what's available
-      console.log("Available fields:", cfArray.map(cf => cf.name));
-      
-      const fieldObj = cfArray.find(cf => cf.name.toLowerCase() === fieldName.toLowerCase());
-      console.log(`Field object found for ${fieldName}:`, fieldObj);
-      
-      if (!fieldObj) return 0;
-      const value = parseInt(fieldObj.fieldValue, 10) || 0;
-      console.log(`Value for ${fieldName}:`, value);
-      return value;
+    // Field IDs from your GHL setup
+    const fieldIds = {
+      relationships: 'OULJQ8lRkHXwGn1bQbcO',
+      finances: 'Me9DoKMePvwhScSBVJwQ',
+      selfCare: 'hX8k3EGP30vCfBjKfew2',
+      legacyLiving: '2XU9EXN7vxdoR2E00WAO',
+      careerBusiness: 'R3abr4tA49scN3pmRvux',
+      selfConfidence: 'pNjRh0g9odpYxeUO1V99'
+    };
+
+    function getFieldValue(fieldId) {
+      const field = cfArray.find(cf => cf.id === fieldId);
+      return field ? parseInt(field.value, 10) || 0 : 0;
     }
 
-    // Try different variations of field names
     const data = {
-      selfConfidence: getFieldValue("self confidence") || getFieldValue("selfconfidence") || getFieldValue("self_confidence"),
-      finances: getFieldValue("finances") || getFieldValue("finance"),
-      careerBusiness: getFieldValue("career / business") || getFieldValue("career__business") || getFieldValue("career_business"),
-      relationships: getFieldValue("relationships") || getFieldValue("relationship"),
-      selfCare: getFieldValue("self care") || getFieldValue("self_care"),
-      legacyLiving: getFieldValue("legacy living") || getFieldValue("legacy_living")
+      relationships: getFieldValue(fieldIds.relationships),
+      finances: getFieldValue(fieldIds.finances),
+      selfCare: getFieldValue(fieldIds.selfCare),
+      legacyLiving: getFieldValue(fieldIds.legacyLiving),
+      careerBusiness: getFieldValue(fieldIds.careerBusiness),
+      selfConfidence: getFieldValue(fieldIds.selfConfidence)
     };
 
     // Debug: Log final values
