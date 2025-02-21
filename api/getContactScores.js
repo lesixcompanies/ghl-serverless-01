@@ -47,36 +47,47 @@ module.exports = async function handler(req, res) {
 
     console.log("DEBUG: contact.customField =", contact.customField);
     
-    // Custom field extraction
+    // Custom field extraction with exact GHL field names
     const cfArray = contact.customField || [];
     function getFieldValue(fieldName) {
       const fieldObj = cfArray.find(cf => cf.name === fieldName);
+      console.log(`Looking for field: ${fieldName}, Found:`, fieldObj); // Debug log
       if (!fieldObj) return 0;
       return parseInt(fieldObj.fieldValue, 10) || 0;
     }
 
-    // Get all required field values
-    const relationshipsRaw = getFieldValue("relationships");
+    // Get all required field values using exact GHL field names
     const selfConfidenceRaw = getFieldValue("selfconfidence");
     const financesRaw = getFieldValue("finances");
-    const selfCareRaw = getFieldValue("selfcare");
-    const legacyLivingRaw = getFieldValue("legacyliving");
-    const careerBusinessRaw = getFieldValue("careerbusiness");
+    const careerBusinessRaw = getFieldValue("career__business");
+    const relationshipsRaw = getFieldValue("relationships");
+    const selfCareRaw = getFieldValue("self_care");
+    const legacyLivingRaw = getFieldValue("legacy_living");
+
+    // Added debug logging
+    console.log("Raw field values:", {
+      selfConfidence: selfConfidenceRaw,
+      finances: financesRaw,
+      careerBusiness: careerBusinessRaw,
+      relationships: relationshipsRaw,
+      selfCare: selfCareRaw,
+      legacyLiving: legacyLivingRaw
+    });
 
     res.json({
       success: true,
       data: {
-        relationships: relationshipsRaw,
         selfConfidence: selfConfidenceRaw,
         finances: financesRaw,
+        careerBusiness: careerBusinessRaw,
+        relationships: relationshipsRaw,
         selfCare: selfCareRaw,
-        legacyLiving: legacyLivingRaw,
-        careerBusiness: careerBusinessRaw
+        legacyLiving: legacyLivingRaw
       }
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("Detailed error:", err);
     return res.status(500).json({
       success: false,
       message: "Server error",
