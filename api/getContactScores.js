@@ -33,6 +33,9 @@ module.exports = async function handler(req, res) {
         message: `No contact found with id ${cid}`
       });
     }
+	
+	const contact = ghlResponse.data.contact;
+console.log("DEBUG: contact.customField =", contact.customField);
 
     // Example custom field extraction:
     let cfArray = contact.customField || [];
